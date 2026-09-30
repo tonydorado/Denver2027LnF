@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convention Lost & Found | Portal de Objetos Perdidos</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- HTML5 QRCode Scanner CDN -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        convention: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom UI Enhancements */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .tab-active {
+            border-bottom: 3px solid #6366f1;
+            color: #818cf8;
+            font-weight: 700;
+        }
+
+        /* Color Coding Badges */
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .badge-yellow { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+        .badge-gray { background: rgba(107, 114, 128, 0.2); color: #d1d5db; border: 1px solid rgba(107, 114, 128, 0.4); }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
+
+        #reader video {
+            border-radius: 0.75rem;
+            object-fit: cover;
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navigation Bar -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Logo & Convention Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 text-white">
+                        <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-base sm:text-lg leading-tight tracking-wide text-white" id="app-title">
+                            Convention Lost & Found
+                        </h1>
+                        <p class="text-xs text-slate-400 font-medium" id="app-subtitle">
+                            International Event Portal
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Language Toggle & Admin Controls -->
+                <div class="flex items-center space-x-3">
+                    <!-- EN / ES Language Pill Switcher -->
+                    <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center shadow-inner">
+                        <button id="lang-en-btn" onclick="setLanguage('en')" class="px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                            🇬🇧 EN
+                        </button>
+                        <button id="lang-es-btn" onclick="setLanguage('es')" class="px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">
+                            🇪🇸 ES
+                        </button>
+                    </div>
+
+                    <!-- Setup Modal Button -->
+                    <button onclick="openAppsScriptModal()" class="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-emerald-900/30">
+                        <i class="fa-solid fa-database"></i>
+                        <span class="hidden sm:inline" data-i18n="setupSheet">Google Sheet Backend</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation Bar -->
+        <div class="bg-slate-900/80 border-t border-slate-800/80 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto flex space-x-4 sm:space-x-8 overflow-x-auto text-xs sm:text-sm font-medium no-scrollbar">
+                <button onclick="switchTab('report')" id="tab-report" class="py-3 px-2 text-slate-400 hover:text-indigo-400 border-b-2 border-transparent transition-all whitespace-nowrap flex items-center space-x-2 tab-active">
+                    <i class="fa-solid fa-hand-holding-hand"></i>
+                    <span data-i18n="tabReportLost">Report Lost Item</span>
+                </button>
+                <button onclick="switchTab('volunteer')" id="tab-volunteer" class="py-3 px-2 text-slate-400 hover:text-indigo-400 border-b-2 border-transparent transition-all whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-solid fa-barcode"></i>
+                    <span data-i18n="tabVolunteerIntake">Log Found Item (Volunteer)</span>
+                </button>
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="py-3 px-2 text-slate-400 hover:text-indigo-400 border-b-2 border-transparent transition-all whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span data-i18n="tabDashboard">Inventory & Matching</span>
+                    <span id="badge-open-count" class="ml-1 bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <!-- Cloud Sync Mode Banner -->
+        <div id="sync-banner" class="p-3.5 bg-indigo-950/60 border border-indigo-800/60 text-indigo-200 rounded-2xl flex flex-wrap items-center justify-between text-xs sm:text-sm gap-2 shadow-lg">
+            <div class="flex items-center space-x-2.5">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                </span>
+                <span id="sync-status-text" data-i18n="syncActiveMode">Local Browser Storage Active (Offline Mode). Data is saved on this device.</span>
+            </div>
+            <button onclick="openAppsScriptModal()" class="underline font-bold hover:text-white transition flex items-center space-x-1" data-i18n="connectGoogleSheet">
+                <span>Connect Google Sheet</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        </div>
+
+        <!-- ================= VIEW 1: REPORT LOST ITEM (Attendee Public View) ================= -->
+        <section id="view-report" class="space-y-6">
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+                <div class="border-b border-slate-800 pb-5">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight" data-i18n="lostFormTitle">
+                        Report a Lost Item
+                    </h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1.5 leading-relaxed" data-i18n="lostFormSubtitle">
+                        Fill out this form with details about what you lost. Our Lost & Found team will search our physical inventory vault and contact you directly if a match is logged.
+                    </p>
+                </div>
+
+                <form id="lost-report-form" onsubmit="handleLostFormSubmit(event)" class="space-y-6">
+                    <!-- Attendee Contact Section -->
+                    <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center space-x-2">
+                            <i class="fa-solid fa-address-card"></i>
+                            <span data-i18n="sectionContact">Your Contact Information</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelFullName">Full Name *</label>
+                                <input type="text" required id="lost-name" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition" placeholder="e.g. Maria Gonzalez">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelPhone">Phone / WhatsApp *</label>
+                                <input type="tel" required id="lost-phone" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition" placeholder="+1 (555) 019-2834">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelEmail">Email Address *</label>
+                                <input type="email" required id="lost-email" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition" placeholder="attendee@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelPrefLang">Preferred Language *</label>
+                                <select id="lost-language" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition">
+                                    <option value="English">English</option>
+                                    <option value="Spanish">Español (Spanish)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item Characteristics Section -->
+                    <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center space-x-2">
+                            <i class="fa-solid fa-box"></i>
+                            <span data-i18n="sectionItemDetails">Item Description</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelCategory">Category *</label>
+                                <select id="lost-category" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition">
+                                    <option value="Electronics" data-i18n="catElectronics">Electronics (Phone, Tablet, Audio)</option>
+                                    <option value="ID/Wallet" data-i18n="catID">ID, Wallet, Passport, Badge</option>
+                                    <option value="Keys/Eyewear" data-i18n="catKeys">Keys, Eyewear, Jewelry</option>
+                                    <option value="Apparel/Bags" data-i18n="catApparel">Apparel, Jackets, Backpacks</option>
+                                    <option value="Other" data-i18n="catOther">Other Items</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelColor">Primary Color *</label>
+                                <select id="lost-color" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition">
+                                    <option value="Black" data-i18n="colorBlack">Black</option>
+                                    <option value="Blue" data-i18n="colorBlue">Blue</option>
+                                    <option value="Red" data-i18n="colorRed">Red</option>
+                                    <option value="Yellow/Gold" data-i18n="colorYellow">Yellow / Gold</option>
+                                    <option value="Green" data-i18n="colorGreen">Green</option>
+                                    <option value="White/Silver" data-i18n="colorWhite">White / Silver</option>
+                                    <option value="Brown" data-i18n="colorBrown">Brown</option>
+                                    <option value="Other" data-i18n="colorOther">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelLocation">Approximate Location Lost</label>
+                                <input type="text" id="lost-location" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition" placeholder="e.g. Main Auditorium Row 12, Hall B, Coffee Station">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelDescription">Detailed Description *</label>
+                            <textarea id="lost-description" required rows="3" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition" placeholder="Include brand name, distinctive stickers, case color, lock screen photo description, or unique scratches..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2 flex justify-end">
+                        <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow-xl shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span data-i18n="btnSubmitReport">Submit Lost Item Report</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: LOG FOUND ITEM (Volunteer Intake View) ================= -->
+        <section id="view-volunteer" class="space-y-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+                <div class="border-b border-slate-800 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full text-xs font-bold mb-2">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span data-i18n="tagVolunteerOnly">Volunteer Staff Only</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight" data-i18n="foundFormTitle">
+                            Log Found Item Intake
+                        </h2>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-1" data-i18n="foundFormSubtitle">
+                            Attach a pre-printed barcode sticker to the item bag, scan or enter the tag ID, and record storage vault details.
+                        </p>
+                    </div>
+
+                    <!-- Auto-Tag Generator Helper Button -->
+                    <button type="button" onclick="generateRandomTag()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2.5 rounded-xl transition flex items-center space-x-2 self-start md:self-auto font-semibold">
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+                        <span data-i18n="btnAutoTag">Generate Next Sequential Tag</span>
+                    </button>
+                </div>
+
+                <form id="found-intake-form" onsubmit="handleFoundFormSubmit(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Camera Barcode Reader Column -->
+                        <div class="lg:col-span-1 bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center space-x-2 mb-2">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <span data-i18n="scannerTitle">Barcode Tag Reader</span>
+                                </h3>
+                                <p class="text-xs text-slate-400 mb-4" data-i18n="scannerDesc">
+                                    Scan pre-numbered barcode label attached to physical poly bag or item tag.
+                                </p>
+
+                                <!-- Camera Video Display Container -->
+                                <div id="reader" class="w-full bg-slate-900 rounded-xl overflow-hidden min-h-[180px] flex items-center justify-center border border-slate-800 relative">
+                                    <p id="reader-placeholder" class="text-xs text-slate-500 text-center p-4" data-i18n="scannerPlaceholder">
+                                        Camera offline. Click 'Start Camera' below.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-2 pt-2">
+                                <button type="button" onclick="startScanner()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-lg shadow-indigo-900/30">
+                                    <i class="fa-solid fa-video"></i>
+                                    <span data-i18n="btnStartScan">Start Camera</span>
+                                </button>
+                                <button type="button" onclick="stopScanner()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 px-3.5 rounded-xl text-xs font-bold transition">
+                                    <i class="fa-solid fa-stop"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Found Item Log Fields -->
+                        <div class="lg:col-span-2 space-y-4 bg-slate-900/90 p-5 rounded-2xl border border-slate-800">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelBarcodeTag">Barcode / QR Tag ID *</label>
+                                    <div class="relative">
+                                        <input type="text" id="found-tag" required class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-indigo-400 font-mono font-bold tracking-wider text-sm focus:ring-2 focus:ring-indigo-500" placeholder="TAG-0001">
+                                        <i class="fa-solid fa-barcode absolute left-3.5 top-3 text-slate-500"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelStorageBin">Storage Location / Bin *</label>
+                                    <select id="found-bin" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-sm focus:ring-2 focus:ring-indigo-500">
+                                        <option value="Bin Red-1 (High-Value Vault)">Bin Red-1 (High-Value Vault)</option>
+                                        <option value="Bin Red-2 (High-Value Vault)">Bin Red-2 (High-Value Vault)</option>
+                                        <option value="Bin Blue-1 (ID & Wallets)">Bin Blue-1 (ID & Wallets)</option>
+                                        <option value="Bin Yellow-1 (Keys & Glasses)">Bin Yellow-1 (Keys & Glasses)</option>
+                                        <option value="Bin Green-1 (Clothing & Bags)">Bin Green-1 (Clothing & Bags)</option>
+                                        <option value="Bin Grey-1 (General Hold)">Bin Grey-1 (General Hold)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelCategory">Category *</label>
+                                    <select id="found-category" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-indigo-500">
+                                        <option value="Electronics" data-i18n="catElectronics">Electronics (Phone, Tablet, Audio)</option>
+                                        <option value="ID/Wallet" data-i18n="catID">ID, Wallet, Passport, Badge</option>
+                                        <option value="Keys/Eyewear" data-i18n="catKeys">Keys, Eyewear, Jewelry</option>
+                                        <option value="Apparel/Bags" data-i18n="catApparel">Apparel, Jackets, Backpacks</option>
+                                        <option value="Other" data-i18n="catOther">Other Items</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelColor">Primary Color *</label>
+                                    <select id="found-color" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-indigo-500">
+                                        <option value="Black" data-i18n="colorBlack">Black</option>
+                                        <option value="Blue" data-i18n="colorBlue">Blue</option>
+                                        <option value="Red" data-i18n="colorRed">Red</option>
+                                        <option value="Yellow/Gold" data-i18n="colorYellow">Yellow / Gold</option>
+                                        <option value="Green" data-i18n="colorGreen">Green</option>
+                                        <option value="White/Silver" data-i18n="colorWhite">White / Silver</option>
+                                        <option value="Brown" data-i18n="colorBrown">Brown</option>
+                                        <option value="Other" data-i18n="colorOther">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelDescription">Physical Item Description *</label>
+                                <textarea id="found-description" required rows="2" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Detailed physical visual features..."></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelVolunteerName">Logging Volunteer Name *</label>
+                                    <input type="text" id="found-volunteer" required class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-indigo-500" placeholder="e.g. Alex M.">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="labelTurnedInBy">Turned In By / Location Found</label>
+                                    <input type="text" id="found-location" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-indigo-500" placeholder="e.g. Security Guard / Stage A Lobby">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2 flex justify-end">
+                        <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow-xl shadow-emerald-900/30 transition-all flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-box-archive"></i>
+                            <span data-i18n="btnLogFound">Log Item Into Storage Vault</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 3: INVENTORY & MATCHING DASHBOARD ================= -->
+        <section id="view-dashboard" class="space-y-6 hidden">
+            <!-- Search Filter Bar -->
+            <div class="glass-panel p-4 sm:p-5 rounded-2xl shadow-lg space-y-4">
+                <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+                    
+                    <!-- Search Field -->
+                    <div class="relative w-full md:w-96">
+                        <input type="text" id="dash-search" oninput="renderDashboard()" class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Search keywords, names, tag numbers...">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-500"></i>
+                    </div>
+
+                    <!-- Category & Status Selectors -->
+                    <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+                        <select id="dash-filter-category" onchange="renderDashboard()" class="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold text-slate-200">
+                            <option value="ALL" data-i18n="filterAllCat">All Categories</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="ID/Wallet">ID/Wallet</option>
+                            <option value="Keys/Eyewear">Keys/Eyewear</option>
+                            <option value="Apparel/Bags">Apparel/Bags</option>
+                            <option value="Other">Other</option>
+                        </select>
+
+                        <select id="dash-filter-status" onchange="renderDashboard()" class="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold text-slate-200">
+                            <option value="ALL" data-i18n="filterAllStatus">All Statuses</option>
+                            <option value="Open" data-i18n="statusOpen">Open / Searching</option>
+                            <option value="In Vault" data-i18n="statusInVault">In Physical Vault</option>
+                            <option value="Claimed" data-i18n="statusClaimed">Claimed / Returned</option>
+                        </select>
+
+                        <button onclick="renderDashboard()" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition" title="Refresh">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Dual Column View -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Column 1: Lost Item Reports -->
+                <div class="glass-panel rounded-2xl overflow-hidden flex flex-col border border-slate-800">
+                    <div class="p-4 border-b border-slate-800 bg-slate-900/80 flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-circle-question text-amber-400"></i>
+                            <h3 class="font-bold text-slate-200 text-sm" data-i18n="headerLostReports">Lost Item Reports</h3>
+                        </div>
+                        <span id="count-lost-reports" class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-bold">0</span>
+                    </div>
+
+                    <div id="list-lost-reports" class="divide-y divide-slate-800/60 overflow-y-auto max-h-[600px] p-2 space-y-2">
+                        <!-- Dynamic content generated in JS -->
+                    </div>
+                </div>
+
+                <!-- Column 2: Physical Vault Found Inventory -->
+                <div class="glass-panel rounded-2xl overflow-hidden flex flex-col border border-slate-800">
+                    <div class="p-4 border-b border-slate-800 bg-slate-900/80 flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-vault text-emerald-400"></i>
+                            <h3 class="font-bold text-slate-200 text-sm" data-i18n="headerFoundVault">Found Vault Inventory</h3>
+                        </div>
+                        <span id="count-found-inventory" class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-bold">0</span>
+                    </div>
+
+                    <div id="list-found-inventory" class="divide-y divide-slate-800/60 overflow-y-auto max-h-[600px] p-2 space-y-2">
+                        <!-- Dynamic content generated in JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Google Sheets Apps Script Setup Guide -->
+    <div id="appsscript-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-800 p-6 sm:p-8 space-y-6">
+            <div class="flex justify-between items-start border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-xl font-extrabold text-white" data-i18n="modalScriptTitle">Google Sheets Backend Setup</h3>
+                    <p class="text-xs text-slate-400 mt-1" data-i18n="modalScriptSubtitle">Connect this front-end form directly to a private Google Sheet in 3 minutes.</p>
+                </div>
+                <button onclick="closeAppsScriptModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs sm:text-sm text-slate-300">
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li>Create a fresh <strong>Google Sheet</strong> and name two tabs: <code class="bg-slate-950 px-1.5 py-0.5 rounded text-indigo-400 font-mono">Lost_Reports</code> and <code class="bg-slate-950 px-1.5 py-0.5 rounded text-indigo-400 font-mono">Found_Inventory</code>.</li>
+                    <li>Open <strong>Extensions &gt; Apps Script</strong> in Google Sheets.</li>
+                    <li>Paste the Google Apps Script snippet below and click <strong>Deploy &gt; New Deployment</strong>.</li>
+                    <li>Select type: <strong>Web app</strong>, set <em>Who has access</em> to <strong>"Anyone"</strong>, and click <strong>Deploy</strong>.</li>
+                    <li>Copy the Web App URL and paste it below.</li>
+                </ol>
+
+                <!-- Code Block Area -->
+                <div class="relative">
+                    <pre class="bg-slate-950 text-emerald-400 p-4 rounded-2xl text-xs font-mono overflow-x-auto max-h-52 border border-slate-800" id="code-snippet">
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  if (data.type === 'LOST') {
+    var lostSheet = sheet.getSheetByName('Lost_Reports') || sheet.insertSheet('Lost_Reports');
+    lostSheet.appendRow([
+      new Date(), data.id, data.name, data.phone, data.email, 
+      data.language, data.category, data.color, data.location, data.description, data.status
+    ]);
+  } else if (data.type === 'FOUND') {
+    var foundSheet = sheet.getSheetByName('Found_Inventory') || sheet.insertSheet('Found_Inventory');
+    foundSheet.appendRow([
+      new Date(), data.tag, data.bin, data.category, data.color, 
+      data.description, data.volunteer, data.location, data.status
+    ]);
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({result: 'success'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet() {
+  return ContentService.createTextOutput("Convention Lost & Found Backend Active");
+}
+                    </pre>
+                    <button onclick="copyScriptCode()" class="absolute top-3 right-3 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-lg">
+                        <i class="fa-regular fa-copy"></i>
+                        <span data-i18n="btnCopyCode">Copy Script</span>
+                    </button>
+                </div>
+
+                <!-- Web App URL Input Box -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <label class="block font-bold text-indigo-400 text-xs" data-i18n="labelScriptUrl">Deployed Google Web App URL:</label>
+                    <div class="flex space-x-2">
+                        <input type="url" id="google-script-url" class="flex-1 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:ring-2 focus:ring-indigo-500" placeholder="https://script.google.com/macros/s/.../exec">
+                        <button onclick="saveGoogleScriptUrl()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap" data-i18n="btnSaveSync">Save & Connect</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button onclick="closeAppsScriptModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-xl text-xs font-semibold transition" data-i18n="btnClose">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State Variables
+        let currentLang = 'en';
+        let html5QrCode = null;
+        let googleScriptUrl = localStorage.getItem('lf_google_script_url') || '';
+
+        // Local Storage State Data
+        let lostReports = JSON.parse(localStorage.getItem('lf_lost_reports')) || [
+            {
+                id: 'LOST-1001',
+                name: 'Elena Rostova',
+                phone: '+1 (555) 392-1029',
+                email: 'elena@convention.org',
+                language: 'English',
+                category: 'Electronics',
+                color: 'Black',
+                location: 'Main Hall Auditorium',
+                description: 'iPhone 14 Pro in black silicone case with a convention badge sticker on back.',
+                status: 'Open',
+                timestamp: '2026-09-29 09:15'
+            },
+            {
+                id: 'LOST-1002',
+                name: 'Carlos Mendez',
+                phone: '+34 612 345 678',
+                email: 'carlos@mendez.es',
+                language: 'Spanish',
+                category: 'ID/Wallet',
+                color: 'Brown',
+                location: 'Dining & Coffee Lounge',
+                description: 'Brown leather wallet containing Spanish ID card and convention VIP pass.',
+                status: 'Open',
+                timestamp: '2026-09-29 10:40'
+            }
+        ];
+
+        let foundInventory = JSON.parse(localStorage.getItem('lf_found_inventory')) || [
+            {
+                tag: 'TAG-0001',
+                bin: 'Bin Red-1 (High-Value Vault)',
+                category: 'Electronics',
+                color: 'Black',
+                description: 'Black iPhone with dark case found near Row 12 seats.',
+                volunteer: 'Sarah K.',
+                location: 'Auditorium Security',
+                status: 'In Vault',
+                timestamp: '2026-09-29 09:30'
+            }
+        ];
+
+        // Language Translation Dictionary
+        const translations = {
+            en: {
+                appTitle: "Convention Lost & Found",
+                appSubtitle: "International Event Portal",
+                setupSheet: "Google Sheet Backend",
+                tabReportLost: "Report Lost Item",
+                tabVolunteerIntake: "Log Found Item (Volunteer)",
+                tabDashboard: "Inventory & Matching",
+                syncActiveMode: "Local Browser Storage Active (Offline Mode). Data is saved on this device.",
+                connectGoogleSheet: "Connect Google Sheet",
+                lostFormTitle: "Report a Lost Item",
+                lostFormSubtitle: "Fill out this form with details about what you lost. Our Lost & Found team will search our physical inventory vault and contact you directly if a match is logged.",
+                sectionContact: "Your Contact Information",
+                labelFullName: "Full Name *",
+                labelPhone: "Phone / WhatsApp *",
+                labelEmail: "Email Address *",
+                labelPrefLang: "Preferred Language *",
+                sectionItemDetails: "Item Description",
+                labelCategory: "Category *",
+                labelColor: "Primary Color *",
+                labelLocation: "Approximate Location Lost",
+                labelDescription: "Detailed Description *",
+                catElectronics: "Electronics (Phone, Tablet, Audio)",
+                catID: "ID, Wallet, Passport, Badge",
+                catKeys: "Keys, Eyewear, Jewelry",
+                catApparel: "Apparel, Jackets, Backpacks",
+                catOther: "Other Items",
+                colorBlack: "Black",
+                colorBlue: "Blue",
+                colorRed: "Red",
+                colorYellow: "Yellow / Gold",
+                colorGreen: "Green",
+                colorWhite: "White / Silver",
+                colorBrown: "Brown",
+                colorOther: "Other",
+                btnSubmitReport: "Submit Lost Item Report",
+                tagVolunteerOnly: "Volunteer Staff Only",
+                foundFormTitle: "Log Found Item Intake",
+                foundFormSubtitle: "Attach a pre-printed barcode sticker to the item bag, scan or enter the tag ID, and record storage vault details.",
+                btnAutoTag: "Generate Next Sequential Tag",
+                scannerTitle: "Barcode Tag Reader",
+                scannerDesc: "Scan pre-numbered barcode label attached to physical poly bag or item tag.",
+                scannerPlaceholder: "Camera offline. Click 'Start Camera' below.",
+                btnStartScan: "Start Camera",
+                labelBarcodeTag: "Barcode / QR Tag ID *",
+                labelStorageBin: "Storage Location / Bin *",
+                labelVolunteerName: "Logging Volunteer Name *",
+                labelTurnedInBy: "Turned In By / Location Found",
+                btnLogFound: "Log Item Into Storage Vault",
+                filterAllCat: "All Categories",
+                filterAllStatus: "All Statuses",
+                statusOpen: "Open / Searching",
+                statusInVault: "In Physical Vault",
+                statusClaimed: "Claimed / Returned",
+                headerLostReports: "Lost Item Reports",
+                headerFoundVault: "Found Vault Inventory",
+                modalScriptTitle: "Google Sheets Backend Setup",
+                modalScriptSubtitle: "Connect this front-end form directly to a private Google Sheet in 3 minutes.",
+                btnCopyCode: "Copy Script",
+                labelScriptUrl: "Deployed Google Web App URL:",
+                btnSaveSync: "Save & Connect",
+                btnClose: "Close",
+                matchAndClaim: "Match & Return"
+            },
+            es: {
+                appTitle: "Objetos Perdidos Convención",
+                appSubtitle: "Portal Oficial del Evento",
+                setupSheet: "Configurar Google Sheet",
+                tabReportLost: "Reportar Objeto Perdido",
+                tabVolunteerIntake: "Registrar Hallazgo (Voluntarios)",
+                tabDashboard: "Inventario y Coincidencias",
+                syncActiveMode: "Modo Local Activo. Los datos se guardan en la memoria de este dispositivo.",
+                connectGoogleSheet: "Conectar Google Sheet",
+                lostFormTitle: "Reportar un Objeto Perdido",
+                lostFormSubtitle: "Complete este formulario con detalles del objeto que perdió. Nuestro equipo buscará en la bóveda física y se comunicará si se registra una coincidencia.",
+                sectionContact: "Información de Contacto",
+                labelFullName: "Nombre Completo *",
+                labelPhone: "Teléfono / WhatsApp *",
+                labelEmail: "Correo Electrónico *",
+                labelPrefLang: "Idioma Preferido *",
+                sectionItemDetails: "Descripción del Objeto",
+                labelCategory: "Categoría *",
+                labelColor: "Color Principal *",
+                labelLocation: "Lugar Aproximado de Pérdida",
+                labelDescription: "Descripción Detallada *",
+                catElectronics: "Electrónica (Teléfono, Tablet, Audio)",
+                catID: "Identificación, Billetera, Pasaporte, Carnet",
+                catKeys: "Llaves, Lentes, Joyería",
+                catApparel: "Ropa, Chaquetas, Mochilas",
+                catOther: "Otros Objetos",
+                colorBlack: "Negro",
+                colorBlue: "Azul",
+                colorRed: "Rojo",
+                colorYellow: "Amarillo / Dorado",
+                colorGreen: "Verde",
+                colorWhite: "Blanco / Plateado",
+                colorBrown: "Marrón",
+                colorOther: "Otro",
+                btnSubmitReport: "Enviar Reporte de Objeto Perdido",
+                tagVolunteerOnly: "Solo Personal Voluntario",
+                foundFormTitle: "Ingreso de Objeto Encontrado",
+                foundFormSubtitle: "Etiquete el objeto con un código de barras, escanee el ID y registre la ubicación de almacenamiento.",
+                btnAutoTag: "Generar Siguiente Código",
+                scannerTitle: "Lector de Código de Barras",
+                scannerDesc: "Escanee la etiqueta adjunta a la bolsa u objeto físico.",
+                scannerPlaceholder: "Cámara apagada. Haga clic en 'Iniciar Cámara'.",
+                btnStartScan: "Iniciar Cámara",
+                labelBarcodeTag: "ID de Etiqueta / Código *",
+                labelStorageBin: "Ubicación / Contenedor *",
+                labelVolunteerName: "Nombre del Voluntario *",
+                labelTurnedInBy: "Entregado Por / Lugar Hallado",
+                btnLogFound: "Registrar en Bóveda",
+                filterAllCat: "Todas las Categorías",
+                filterAllStatus: "Todos los Estados",
+                statusOpen: "Abierto / En Búsqueda",
+                statusInVault: "En Bóveda Física",
+                statusClaimed: "Reclamado / Entregado",
+                headerLostReports: "Reportes de Pérdida",
+                headerFoundVault: "Inventario de Bóveda",
+                modalScriptTitle: "Configuración de Google Sheets Backend",
+                modalScriptSubtitle: "Conecte este formulario a un Google Sheet privado en solo 3 minutos.",
+                btnCopyCode: "Copiar Código",
+                labelScriptUrl: "URL del Web App de Google:",
+                btnSaveSync: "Guardar y Conectar",
+                btnClose: "Cerrar",
+                matchAndClaim: "Coincidir y Entregar"
+            }
+        };
+
+        window.onload = function() {
+            setLanguage('en');
+            updateSyncStatusBanner();
+            renderDashboard();
+            generateRandomTag();
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Toggle Language Switcher styling
+            document.getElementById('lang-en-btn').className = lang === 'en' 
+                ? "px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md"
+                : "px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+            
+            document.getElementById('lang-es-btn').className = lang === 'es' 
+                ? "px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md"
+                : "px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+
+            // Update text labels
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            renderDashboard();
+        }
+
+        // Tab Navigation Switcher
+        function switchTab(tabName) {
+            document.getElementById('view-report').classList.add('hidden');
+            document.getElementById('view-volunteer').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+
+            document.getElementById('tab-report').classList.remove('tab-active');
+            document.getElementById('tab-volunteer').classList.remove('tab-active');
+            document.getElementById('tab-dashboard').classList.remove('tab-active');
+
+            if (tabName !== 'volunteer' && html5QrCode) {
+                stopScanner();
+            }
+
+            document.getElementById('view-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.add('tab-active');
+        }
+
+        function handleLostFormSubmit(e) {
+            e.preventDefault();
+
+            const newReport = {
+                id: 'LOST-' + Math.floor(1000 + Math.random() * 9000),
+                name: document.getElementById('lost-name').value,
+                phone: document.getElementById('lost-phone').value,
+                email: document.getElementById('lost-email').value,
+                language: document.getElementById('lost-language').value,
+                category: document.getElementById('lost-category').value,
+                color: document.getElementById('lost-color').value,
+                location: document.getElementById('lost-location').value || 'N/A',
+                description: document.getElementById('lost-description').value,
+                status: 'Open',
+                timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+            };
+
+            lostReports.unshift(newReport);
+            localStorage.setItem('lf_lost_reports', JSON.stringify(lostReports));
+
+            syncToGoogleSheets({ type: 'LOST', ...newReport });
+
+            document.getElementById('lost-report-form').reset();
+            showNotification(
+                currentLang === 'es' ? '¡Reporte enviado con éxito!' : 'Lost Item Report Submitted!',
+                `Tracking ID: ${newReport.id}`
+            );
+
+            renderDashboard();
+            switchTab('dashboard');
+        }
+
+        function handleFoundFormSubmit(e) {
+            e.preventDefault();
+
+            const newFound = {
+                tag: document.getElementById('found-tag').value.toUpperCase(),
+                bin: document.getElementById('found-bin').value,
+                category: document.getElementById('found-category').value,
+                color: document.getElementById('found-color').value,
+                description: document.getElementById('found-description').value,
+                volunteer: document.getElementById('found-volunteer').value,
+                location: document.getElementById('found-location').value || 'Vault',
+                status: 'In Vault',
+                timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16)
+            };
+
+            foundInventory.unshift(newFound);
+            localStorage.setItem('lf_found_inventory', JSON.stringify(foundInventory));
+
+            syncToGoogleSheets({ type: 'FOUND', ...newFound });
+
+            document.getElementById('found-intake-form').reset();
+            generateRandomTag();
+
+            showNotification(
+                currentLang === 'es' ? '¡Objeto registrado en bóveda!' : 'Item Logged Into Vault!',
+                `Tag: ${newFound.tag} -> ${newFound.bin}`
+            );
+
+            renderDashboard();
+            switchTab('dashboard');
+        }
+
+        function renderDashboard() {
+            const searchQuery = (document.getElementById('dash-search')?.value || '').toLowerCase();
+            const filterCat = document.getElementById('dash-filter-category')?.value || 'ALL';
+            const filterStatus = document.getElementById('dash-filter-status')?.value || 'ALL';
+
+            const filteredLost = lostReports.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery) ||
+                                     item.description.toLowerCase().includes(searchQuery) ||
+                                     item.id.toLowerCase().includes(searchQuery);
+                const matchesCat = filterCat === 'ALL' || item.category === filterCat;
+                const matchesStatus = filterStatus === 'ALL' || item.status === filterStatus;
+                return matchesSearch && matchesCat && matchesStatus;
+            });
+
+            const filteredFound = foundInventory.filter(item => {
+                const matchesSearch = item.tag.toLowerCase().includes(searchQuery) ||
+                                     item.description.toLowerCase().includes(searchQuery) ||
+                                     item.bin.toLowerCase().includes(searchQuery);
+                const matchesCat = filterCat === 'ALL' || item.category === filterCat;
+                const matchesStatus = filterStatus === 'ALL' || item.status === filterStatus;
+                return matchesSearch && matchesCat && matchesStatus;
+            });
+
+            document.getElementById('badge-open-count').textContent = lostReports.filter(r => r.status === 'Open').length;
+            document.getElementById('count-lost-reports').textContent = filteredLost.length;
+            document.getElementById('count-found-inventory').textContent = filteredFound.length;
+
+            // Render Lost Column
+            const lostContainer = document.getElementById('list-lost-reports');
+            if (filteredLost.length === 0) {
+                lostContainer.innerHTML = `<p class="text-xs text-slate-500 p-4 text-center">No matching lost reports found.</p>`;
+            } else {
+                lostContainer.innerHTML = filteredLost.map(item => `
+                    <div class="p-3 bg-slate-900/90 hover:bg-slate-900 rounded-xl transition border border-slate-800 text-xs space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="font-mono font-bold text-indigo-400">${item.id}</span>
+                                <span class="ml-2 font-semibold text-slate-200">${escapeHtml(item.name)}</span>
+                            </div>
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase ${getCategoryBadgeClass(item.category)}">${item.category}</span>
+                        </div>
+                        <p class="text-slate-400 line-clamp-2">${escapeHtml(item.description)}</p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px] text-slate-400">
+                            <span><i class="fa-solid fa-palette mr-1 text-slate-500"></i>${item.color}</span>
+                            <span><i class="fa-solid fa-phone mr-1 text-slate-500"></i>${escapeHtml(item.phone)}</span>
+                            <span class="font-bold ${item.status === 'Open' ? 'text-amber-400' : 'text-emerald-400'}">${item.status}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Found Column
+            const foundContainer = document.getElementById('list-found-inventory');
+            if (filteredFound.length === 0) {
+                foundContainer.innerHTML = `<p class="text-xs text-slate-500 p-4 text-center">No matching found items in vault.</p>`;
+            } else {
+                foundContainer.innerHTML = filteredFound.map(item => `
+                    <div class="p-3 bg-slate-900/90 hover:bg-slate-900 rounded-xl transition border border-slate-800 text-xs space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">${item.tag}</span>
+                                <span class="ml-2 font-medium text-slate-300">${escapeHtml(item.bin)}</span>
+                            </div>
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase ${getCategoryBadgeClass(item.category)}">${item.category}</span>
+                        </div>
+                        <p class="text-slate-400 line-clamp-2">${escapeHtml(item.description)}</p>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px] text-slate-400">
+                            <span><i class="fa-solid fa-palette mr-1 text-slate-500"></i>${item.color}</span>
+                            <span><i class="fa-solid fa-user-check mr-1 text-slate-500"></i>${escapeHtml(item.volunteer)}</span>
+                            ${item.status === 'In Vault' 
+                                ? `<button onclick="markClaimed('${item.tag}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition shadow">${translations[currentLang].matchAndClaim}</button>`
+                                : `<span class="font-bold text-slate-500">${item.status}</span>`
+                            }
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function markClaimed(tag) {
+            const foundIdx = foundInventory.findIndex(i => i.tag === tag);
+            if (foundIdx !== -1) {
+                foundInventory[foundIdx].status = 'Claimed / Returned';
+                localStorage.setItem('lf_found_inventory', JSON.stringify(foundInventory));
+                renderDashboard();
+                showNotification(
+                    currentLang === 'es' ? 'Objeto Entregado' : 'Item Marked as Returned',
+                    `Tag ${tag} updated to Claimed.`
+                );
+            }
+        }
+
+        function getCategoryBadgeClass(cat) {
+            switch(cat) {
+                case 'Electronics': return 'badge-red';
+                case 'ID/Wallet': return 'badge-blue';
+                case 'Keys/Eyewear': return 'badge-yellow';
+                case 'Apparel/Bags': return 'badge-green';
+                default: return 'badge-gray';
+            }
+        }
+
+        function startScanner() {
+            document.getElementById('reader-placeholder').classList.add('hidden');
+            html5QrCode = new Html5Qrcode("reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    document.getElementById('found-tag').value = decodedText.toUpperCase();
+                    showNotification("Barcode Scanned!", `Detected Tag: ${decodedText}`);
+                    stopScanner();
+                },
+                () => {}
+            ).catch(err => {
+                alert("Camera access failed or unavailable: " + err);
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    document.getElementById('reader-placeholder').classList.remove('hidden');
+                }).catch(() => {});
+            }
+        }
+
+        function generateRandomTag() {
+            const nextSeq = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('found-tag').value = `TAG-${nextSeq}`;
+        }
+
+        function syncToGoogleSheets(payload) {
+            if (!googleScriptUrl) return;
+
+            fetch(googleScriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                console.log('Google Sheets Sync POST dispatched successfully.');
+            }).catch(err => {
+                console.error('Google Sheets Sync Error:', err);
+            });
+        }
+
+        function openAppsScriptModal() {
+            document.getElementById('appsscript-modal').classList.remove('hidden');
+            document.getElementById('google-script-url').value = googleScriptUrl;
+        }
+
+        function closeAppsScriptModal() {
+            document.getElementById('appsscript-modal').classList.add('hidden');
+        }
+
+        function saveGoogleScriptUrl() {
+            googleScriptUrl = document.getElementById('google-script-url').value.trim();
+            localStorage.setItem('lf_google_script_url', googleScriptUrl);
+            updateSyncStatusBanner();
+            closeAppsScriptModal();
+            showNotification(
+                "Backend Saved",
+                googleScriptUrl ? "Google Sheets URL connected!" : "Reverted to Local Storage mode."
+            );
+        }
+
+        function updateSyncStatusBanner() {
+            const bannerText = document.getElementById('sync-status-text');
+            if (googleScriptUrl) {
+                bannerText.textContent = currentLang === 'es' 
+                    ? "Sincronización en la Nube Activa (Conectado a Google Sheets)."
+                    : "Live Google Sheets Cloud Sync Active.";
+            } else {
+                bannerText.textContent = translations[currentLang].syncActiveMode;
+            }
+        }
+
+        function copyScriptCode() {
+            const codeText = document.getElementById('code-snippet').innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                showNotification("Copied!", "Google Apps Script code snippet copied to clipboard.");
+            });
+        }
+
+        // Custom Toast Notification Function
+        function showNotification(title, message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 z-50 bg-slate-900 border border-slate-700 text-white p-4 rounded-2xl shadow-2xl flex items-center space-x-3 transition-all duration-300 transform translate-y-10 opacity-0';
+            toast.innerHTML = `
+                <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-md">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-xs">${escapeHtml(title)}</h4>
+                    <p class="text-[11px] text-slate-300">${escapeHtml(message)}</p>
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
